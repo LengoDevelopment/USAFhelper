@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from flask import Flask
 from threading import Thread
+import os
 
 # Enable message content intent
 intents = discord.Intents.default()
@@ -153,7 +154,6 @@ async def rawad(ctx):
 
 
 
-# ------------------------------
 app = Flask('')
 
 @app.route('/')
@@ -163,14 +163,12 @@ def home():
 def run():
     app.run(host='0.0.0.0', port=3000)
 
-# Run Flask server in a background thread
+# Start Flask server in background
 t = Thread(target=run)
 t.start()
 
 # ------------------------------
-# Run your bot
+# Run the bot safely with environment variable
 # ------------------------------
-import os
-
 TOKEN = os.environ.get("DISCORD_TOKEN")
 bot.run(TOKEN)
