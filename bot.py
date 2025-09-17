@@ -1,9 +1,7 @@
 import discord
 from discord.ext import commands
-
-import tracemalloc
-tracemalloc.start()
-
+from flask import Flask
+from threading import Thread
 
 # Enable message content intent
 intents = discord.Intents.default()
@@ -154,4 +152,25 @@ async def rawad(ctx):
 🔗https://discord.gg/JRKhxy8fQ9```""")
 
 
-bot.run("MTQxNzc3MDI0OTAwODE4OTQ0MA.GN-BCj.57BkV4GFg1D-yoBtWpy_qhz4Z1nNXuLKVr43Tw")
+
+# ------------------------------
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run():
+    app.run(host='0.0.0.0', port=3000)
+
+# Run Flask server in a background thread
+t = Thread(target=run)
+t.start()
+
+# ------------------------------
+# Run your bot
+# ------------------------------
+import os
+
+TOKEN = os.environ.get("DISCORD_TOKEN")
+bot.run(TOKEN)
