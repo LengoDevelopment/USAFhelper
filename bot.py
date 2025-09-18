@@ -77,7 +77,7 @@ async def info(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def ready(ctx):
+async def ready(ctx, member: discord.Member):
     await ctx.message.delete()
     await ctx.send(f"{member.mention}, please read the ticket closure information below:")
 
@@ -144,7 +144,7 @@ async def rawad(ctx):
 🔗https://discord.gg/JRKhxy8fQ9```""")
 
 @bot.command()
-async def emma(ctx, member: discord.Member):
+async def emma(ctx):
     await ctx.message.delete()
     await ctx.send(f"Reasons why <@891615297071624212> loves Emma:")
 
