@@ -23,6 +23,7 @@ async def hello(ctx):
 
 @bot.command()
 async def ping(ctx):
+await ctx.message.delete()
     await ctx.send(f"Pong! 🏓 \nLatency: {round(bot.latency * 1000)}ms")
 
 @bot.command()
@@ -32,10 +33,9 @@ async def owner(ctx):
 @bot.command()
 async def say(ctx, *, message):
     await ctx.message.delete()
-    
     message = message.replace("**", "@everyone")
-    
     await ctx.send(message)
+
 @bot.command()
 async def cmds(ctx):
     await ctx.message.delete()
@@ -56,15 +56,11 @@ async def cmds(ctx):
 """,
         color=discord.Color.blue()
     )
-    
     await ctx.send(embed=embed)
-
 
 @bot.command()
 async def cinfo(ctx):
    await ctx.message.delete()
-   wait(5)
-
    await ctx.send(f"Channel: <#{ctx.channel.id}>\nServer: {ctx.guild.name}\nUsage: <@{ctx.author.id}>")
 
 @bot.command()
@@ -72,20 +68,19 @@ async def info(ctx):
     await ctx.message.delete()
     embed = discord.Embed(
         title="Bot Commands",
-        description="`!hello`\n> Says hellow to the user who intially ran the command.\n\n`!ping`\n> Gives the latenency of the bot.\n\n`!owner`\n> Informs you of the bot owner.\n\n`!say [MSG]`\n> Makes the bot say something. Use ** to mention @everyone!",
+        description="`!hello`\n> Says hello to the user who initially ran the command.\n\n"
+                    "`!ping`\n> Gives the latency of the bot.\n\n"
+                    "`!owner`\n> Informs you of the bot owner.\n\n"
+                    "`!say [MSG]`\n> Makes the bot say something. Use ** to mention @everyone!",
         color=discord.Color.yellow()
     )
     await ctx.send(embed=embed)
 
 @bot.command()
 async def ready(ctx, member: discord.Member):
-    # Delete the command message
     await ctx.message.delete()
-    
-    # Ping the member as a normal message
     await ctx.send(f"{member.mention}, please read the ticket closure information below:")
-    
-    # Send the embed
+
     embed = discord.Embed(
         title="Ticket Closure",
         description="Greetings, we are going to close this ticket in `24 hours`. "
@@ -94,13 +89,11 @@ async def ready(ctx, member: discord.Member):
                     "*Thank you,*\nUSAF Support",
         color=discord.Color.yellow()
     )
-    
     await ctx.send(embed=embed)
 
 @bot.command()
 async def ad(ctx):
     await ctx.message.delete()
-    
     await ctx.send(f"""# 📢 ATTENTION RECRUITS & LEADERS 📢
 
 🇺🇸 The United States Armed Forces is gearing up for our next big chapter — our Roblox military game is in development and YOU can be part of it!
@@ -124,11 +117,9 @@ async def ad(ctx):
 📅 Enlist today, serve tomorrow, lead forever.
 🔗https://discord.gg/JRKhxy8fQ9""")
 
-
 @bot.command()
 async def rawad(ctx):
     await ctx.message.delete()
-    
     await ctx.send(f"""```# 📢 ATTENTION RECRUITS & LEADERS 📢
 
 🇺🇸 The United States Armed Forces is gearing up for our next big chapter — our Roblox military game is in development and YOU can be part of it!
@@ -152,22 +143,18 @@ async def rawad(ctx):
 📅 Enlist today, serve tomorrow, lead forever.
 🔗https://discord.gg/JRKhxy8fQ9```""")
 
-
 @bot.command()
 async def emma(ctx, member: discord.Member):
-    # Delete the command message
     await ctx.message.delete()
-    
-    # Ping the member as a normal message
     await ctx.send(f"Reasons why <@891615297071624212> loves Emma:")
-    
-    # Send the embed
+
     embed = discord.Embed(
         title="Emma's Love List",
-        description="> 1. Smile\n> 2. Eyes\n> 3. Laugh\n> 4. Empathy\n> 5. Generosity\n> 6. Jokes\n> 7. Sarcasim\n> 8. Communication\n> 9. Giving\n> 10. Forgiveness\n> 11. Clingy\n> 12. Love Language = Physical Touch\n> 13. Overall Personality",
+        description="> 1. Smile\n> 2. Eyes\n> 3. Laugh\n> 4. Empathy\n> 5. Generosity\n"
+                    "> 6. Jokes\n> 7. Sarcasm\n> 8. Communication\n> 9. Giving\n"
+                    "> 10. Forgiveness\n> 11. Clingy\n> 12. Love Language = Physical Touch\n> 13. Overall Personality",
         color=discord.Color.pink()
     )
-    
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -176,7 +163,7 @@ async def shutdown(ctx):
     await ctx.send("👋 Shutting down...")
     await bot.close()
 
-
+# Flask keep-alive
 app = Flask('')
 
 @app.route('/')
@@ -186,12 +173,14 @@ def home():
 def run():
     app.run(host='0.0.0.0', port=3000)
 
-# Start Flask server in background
 t = Thread(target=run)
 t.start()
 
 # ------------------------------
 # Run the bot safely with environment variable
 # ------------------------------
-TOKEN = os.environ.get("DISCORD_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN")
+
+print(f"TOKEN: {TOKEN}")  # <-- temporary check
+
 bot.run(TOKEN)
