@@ -153,6 +153,23 @@ async def rawad(ctx):
 🔗https://discord.gg/JRKhxy8fQ9```""")
 
 
+@bot.command()
+async def emma(ctx, member: discord.Member):
+    # Delete the command message
+    await ctx.message.delete()
+    
+    # Ping the member as a normal message
+    await ctx.send(f"Reasons why <@891615297071624212> loves Emma:")
+    
+    # Send the embed
+    embed = discord.Embed(
+        title="Emma's Love List",
+        description="> 1. Smile\n> 2. Eyes\n> 3. Laugh\n> 4. Empathy\n> 5. Generosity\n> 6. Jokes\n> 7. Sarcasim\n> 8. Communication\n> 9. Giving\n> 10. Forgiveness\n> 11. Clingy\n> 12. Love Language = Physical Touch\n> 13. Overall Personality",
+        color=discord.Color.pink()
+    )
+    
+    await ctx.send(embed=embed)
+
 
 app = Flask('')
 
