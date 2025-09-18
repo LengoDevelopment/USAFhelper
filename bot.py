@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
-from flask import Flask
+from flask import Flask, request
 from threading import Thread
-import os
+import os, sys
 
 # Enable message content intent
 intents = discord.Intents.default()
@@ -23,7 +23,7 @@ async def hello(ctx):
 
 @bot.command()
 async def ping(ctx):
-await ctx.message.delete()
+    await ctx.message.delete()
     await ctx.send(f"Pong! 🏓 \nLatency: {round(bot.latency * 1000)}ms")
 
 @bot.command()
@@ -60,8 +60,8 @@ async def cmds(ctx):
 
 @bot.command()
 async def cinfo(ctx):
-   await ctx.message.delete()
-   await ctx.send(f"Channel: <#{ctx.channel.id}>\nServer: {ctx.guild.name}\nUsage: <@{ctx.author.id}>")
+    await ctx.message.delete()
+    await ctx.send(f"Channel: <#{ctx.channel.id}>\nServer: {ctx.guild.name}\nUsage: <@{ctx.author.id}>")
 
 @bot.command()
 async def info(ctx):
@@ -157,21 +157,34 @@ async def emma(ctx, member: discord.Member):
     )
     await ctx.send(embed=embed)
 
+# ------------------------------
+# Clean Shutdown
+# ------------------------------
 @bot.command()
 @commands.is_owner()
 async def shutdown(ctx):
     await ctx.send("👋 Shutting down...")
+
+    # Shut down Discord bot
     await bot.close()
 
-# Flask keep-alive
-app = Flask('')
+    # Shut down Flask server if running
+    func = request.environ.get("werkzeug.server.shutdown")
+    if func:
+        func()
 
-@app.route('/')
+    # Kill the script completely
+    sys.exit(0)
+
+# Flask keep-alive
+app = Flask("")
+
+@app.route("/")
 def home():
     return "Bot is alive!"
 
 def run():
-    app.run(host='0.0.0.0', port=3000)
+    app.run(host="0.0.0.0", port=3000)
 
 t = Thread(target=run)
 t.start()
@@ -181,6 +194,7 @@ t.start()
 # ------------------------------
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-print(f"TOKEN: {TOKEN}")  # <-- temporary check
-
-bot.run(TOKEN)
+if not TOKEN:
+    print("❌ No Discord token found! Make sure DISCORD_TOKEN is set.")
+else:
+    bot.run(TOKEN)
