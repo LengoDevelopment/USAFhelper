@@ -170,6 +170,12 @@ async def emma(ctx, member: discord.Member):
     
     await ctx.send(embed=embed)
 
+@bot.command()
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.send("👋 Shutting down...")
+    await bot.close()
+
 
 app = Flask('')
 
