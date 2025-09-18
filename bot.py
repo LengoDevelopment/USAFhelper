@@ -77,7 +77,7 @@ async def info(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def ready(ctx, member: discord.Member):
+async def ready(ctx):
     await ctx.message.delete()
     await ctx.send(f"{member.mention}, please read the ticket closure information below:")
 
