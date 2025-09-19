@@ -22,7 +22,9 @@ class MyClient(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
-        await self.tree.sync()
+        GUILD_ID = 123456789012345678  # replace with your server ID
+await self.tree.sync(guild=discord.Object(id=GUILD_ID))
+
         # Use ASCII-only startup messages to avoid Windows console encoding errors
         print("Synced all slash commands.")
 
