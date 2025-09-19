@@ -44,7 +44,7 @@ async def owner(ctx):
 async def say(interaction: discord.Interaction, message: str):
     await interaction.response.send_message(message)
 
-@bot.slash_command(name="", description="")
+@bot.slash_command(name="cmds", description="")
 async def cmds(ctx):
     title="Bot Commands",
         description="""`!hello` -> Pings and greets the user that used the command.
