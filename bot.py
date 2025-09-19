@@ -168,6 +168,11 @@ async def shutdown(ctx):
     # Shut down Discord bot
     await bot.close()
 
+@shutdown.error
+async def shutdown_error(ctx, error):
+    if isinstance(error, commands.NotOwner):
+        await ctx.send("🚫 You don’t have permission to use this command.")
+
     # Shut down Flask server if running
     func = request.environ.get("werkzeug.server.shutdown")
     if func:
@@ -186,8 +191,12 @@ def home():
 def run():
     app.run(host="0.0.0.0", port=3000)
 
-t = Thread(target=run)
-t.start()
+# ------------------------------
+# Optional Flask toggle
+# ------------------------------
+if os.getenv("RUN_FLASK", "false").lower() == "true":
+    t = Thread(target=run)
+    t.start()
 
 # ------------------------------
 # Run the bot safely with environment variable
