@@ -184,19 +184,43 @@ async def shutdown_error(ctx, error):
 
 @bot.event
 async def on_command_error(ctx, error):
-    # Ignore errors that already have local handlers
+    # Ignore errors that have local handlers
     if hasattr(ctx.command, "on_error"):
         return
 
-    # Ignore "command not found" errors
+    # Command not found
     if isinstance(error, commands.CommandNotFound):
+        await ctx.send(f"❌ `{ctx.message.content}` is not a valid command.")
         return
 
-    # Log the error for debugging
-    print(f"⚠️ Error in command {ctx.command}: {error}")
+    # Missing required arguments
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f"❌ Missing argument: `{error.param.name}` for command `{ctx.command}`.")
+        return
 
-    # Send a generic failure message
-    await ctx.send("❌ The bot failed to do that.")
+    # Bad argument type
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f"❌ Invalid argument for command `{ctx.command}`. {error}")
+        return
+
+    # Command on cooldown
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"⏳ Command `{ctx.command}` is on cooldown. Try again in {round(error.retry_after, 1)} seconds.")
+        return
+
+    # Missing permissions
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(f"🚫 You do not have permission to use `{ctx.command}`. Missing: {', '.join(error.missing_permissions)}")
+        return
+
+    # Only bot owner can use
+    if isinstance(error, commands.NotOwner):
+        await ctx.send(f"🚫 Only the bot owner can use `{ctx.command}`.")
+        return
+
+    # Other errors
+    print(f"⚠️ Unexpected error in command `{ctx.command}`: {error}")
+    await ctx.send(f"❌ Something went wrong with `{ctx.command}`. Check the console for details.")
 
 # Flask keep-alive
 app = Flask("")
