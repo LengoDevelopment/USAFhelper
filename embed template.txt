@@ -1,0 +1,33 @@
+### embed template
+
+@client.tree.command(name="template", description="Template for embedded commands")
+async def template(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="",  # <-- Optional. You can safely remove this line if you don't want a title.
+        description="",  # <-- Optional. Remove if you don't want a description.
+        color=discord.Color.blue()  # <-- Optional. Remove or change the color.
+    )
+
+    # Example field
+    embed.add_field(
+        name="",  # <-- Required if you keep this field. Remove the entire add_field line to delete it.
+        value="",  # <-- Required if you keep this field.
+        inline=False  # <-- Optional. If removed, defaults to True.
+    )
+
+    # You can add more fields below
+    # embed.add_field(name="", value="", inline=False)
+
+    # Optional footer
+    embed.set_footer(text="")  # <-- Remove if you don't want a footer.
+
+    # Optional thumbnail
+    # embed.set_thumbnail(url="https://example.com/image.png")  # <-- Remove if no thumbnail.
+
+    # Optional image
+    # embed.set_image(url="https://example.com/large-image.png")  # <-- Remove if no large image.
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+    # ephemeral=True means only the user sees it. Remove ephemeral=True if you want it public.
+
+    

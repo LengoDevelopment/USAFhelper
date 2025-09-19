@@ -3,6 +3,8 @@ from discord import app_commands
 from flask import Flask
 from threading import Thread
 import os
+import asyncio
+import aiohttp
 from dotenv import load_dotenv
 
 # Load environment variables from a local .env file (if present)
@@ -111,6 +113,117 @@ async def shutdown(interaction: discord.Interaction):
         return
     await interaction.response.send_message("Shutting down...")
     await client.close()
+
+
+# Render logs (owner only)
+@client.tree.command(name="renderlogs", description="Fetch recent Render logs (owner only)")
+async def renderlogs(interaction: discord.Interaction, lines: int = 200):
+    OWNER_ID = 891615297071624212
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        return
+
+    api_key = os.getenv("RENDER_API_KEY")
+    service_id = os.getenv("RENDER_SERVICE_ID")
+    if not api_key or not service_id:
+        await interaction.response.send_message(
+            "Render API key or Service ID not configured. Please set RENDER_API_KEY and RENDER_SERVICE_ID in the environment.",
+            ephemeral=True
+        )
+        return
+
+    # Limit lines
+    try:
+        lines = max(1, min(1000, int(lines)))
+    except Exception:
+        lines = 200
+
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    # Render logs endpoint (use service logs endpoint)
+    url = f"https://api.render.com/v1/services/{service_id}/logs?limit={lines}"
+
+    await interaction.response.defer(ephemeral=True)
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers, timeout=20) as resp:
+                body = await resp.text()
+                if resp.status != 200:
+                    embed = discord.Embed(title="Render logs — error", description=f"Failed to fetch logs: HTTP {resp.status}\n{body[:900]}", color=discord.Color.red())
+                    await interaction.followup.send(embed=embed, ephemeral=True)
+                    return
+
+                # Try to parse JSON, fallback to raw text
+                logs_text = None
+                try:
+                    data = await resp.json()
+                    if isinstance(data, dict) and "logs" in data and isinstance(data["logs"], str):
+                        logs_text = data["logs"]
+                    elif isinstance(data, dict) and "events" in data and isinstance(data["events"], list):
+                        logs_text = "\n".join(str(e.get("message", e)) for e in data["events"][-lines:])
+                    elif isinstance(data, list):
+                        logs_text = "\n".join(str(x) for x in data[-lines:])
+                    else:
+                        logs_text = str(data)
+                except Exception:
+                    logs_text = body
+
+                max_chars = 3800
+                if len(logs_text) > max_chars:
+                    truncated = "[...truncated...]\n" + logs_text[-max_chars:]
+                else:
+                    truncated = logs_text
+
+                embed = discord.Embed(title="Render logs (recent)", color=discord.Color.blue())
+                embed.add_field(name=f"Last {lines} lines (truncated)", value=f"```txt\n{truncated}\n```" if truncated.strip() else "(no logs)", inline=False)
+                dashboard_url = f"https://dashboard.render.com/web/service/{service_id}"
+                embed.set_footer(text="Click dashboard link for full logs", icon_url=interaction.user.display_avatar.url)
+                embed.url = dashboard_url
+
+                await interaction.followup.send(embed=embed, ephemeral=True)
+    except asyncio.TimeoutError:
+        await interaction.followup.send("Request timed out fetching Render logs.", ephemeral=True)
+    except Exception as e:
+        await interaction.followup.send(f"Unexpected error: {type(e).__name__} - {e}", ephemeral=True)
+
+
+# Admin help (owner only)
+@client.tree.command(name="adminhelp", description="Admin instructions for Render and bot configuration")
+async def adminhelp(interaction: discord.Interaction):
+    OWNER_ID = 891615297071624212
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("You are not allowed to use this command.", ephemeral=True)
+        return
+
+    embed = discord.Embed(title="Admin: Deploy & Render Help", color=discord.Color.gold())
+    embed.add_field(name="Set environment variables (Render)", value=(
+        "1) Open your service on Render → Environment.\n"
+        "2) Add `DISCORD_TOKEN` = your bot token (secret).\n"
+        "3) Add `RENDER_API_KEY` = your Render API key (secret).\n"
+        "4) Add `RENDER_SERVICE_ID` = your service id.\n"
+    ), inline=False)
+
+    embed.add_field(name="How to get Render values", value=(
+        "- RENDER_API_KEY: Render → Account → API Keys → Create Key.\n"
+        "- RENDER_SERVICE_ID: Render → open the service → Settings → Service ID (copy).\n"
+    ), inline=False)
+
+    embed.add_field(name="Using /renderlogs", value=(
+        "- Run `/renderlogs lines:50` to fetch recent logs (owner only).\n"
+        "- Output is ephemeral and truncated; visit the dashboard link for full logs.\n"
+    ), inline=False)
+
+    embed.add_field(name="Security", value=(
+        "- Never commit secrets to the repo. Add .env to .gitignore.\n"
+        "- Rotate your Discord token if ever exposed.\n"
+    ), inline=False)
+
+    embed.set_footer(text="Admin help — keep these values secret")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 # ------------------------------
 # Flask keep-alive (optional)
