@@ -184,6 +184,7 @@ async def shutdown_error(ctx, error):
 
 @bot.event
 async def on_command_error(ctx, error):
+    await ctx.message.delete()
     if hasattr(ctx.command, "on_error"):
         return
 
