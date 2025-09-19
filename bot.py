@@ -144,6 +144,7 @@ async def rawad(ctx):
 🔗https://discord.gg/JRKhxy8fQ9```""")
 
 @bot.command()
+@commands.is_owner()
 async def emma(ctx):
     await ctx.message.delete()
     await ctx.send(f"Reasons why <@891615297071624212> loves Emma:")
