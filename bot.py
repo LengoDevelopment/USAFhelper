@@ -187,7 +187,7 @@ async def shutdown_error(ctx, error):
     sys.exit(0)
 
 @bot.command()
-async def say(ctx, member: discord.Member, *, message):
+async def dm(ctx, member: discord.Member, *, message):
     """
     DMs a mentioned user and notifies the channel.
     Usage: !say @user Your message here
