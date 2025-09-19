@@ -33,7 +33,7 @@ async def owner(ctx):
 @bot.command()
 async def say(ctx, *, message):
     await ctx.message.delete()
-    message = message.replace("**", "@everyone")
+    message = message.replace("%%", "@everyone")
     await ctx.send(message)
 
 @bot.command()
