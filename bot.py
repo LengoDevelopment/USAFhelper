@@ -21,6 +21,12 @@ async def on_ready():
 async def hello(ctx):
     await ctx.send(f"Hello {ctx.author.mention} 👋")
 
+# Slash command example
+@bot.slash_command(name="hello", description="Say hello to the bot")
+async def hello(ctx):
+    await ctx.respond(f"Hello {ctx.author.mention} 👋")
+
+
 @bot.command()
 async def ping(ctx):
     await ctx.message.delete()
