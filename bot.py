@@ -35,15 +35,33 @@ async def ping(ctx):
     await ctx.message.delete()
     await ctx.send(f"Pong! 🏓 \nLatency: {round(bot.latency * 1000)}ms")
 
-@bot.command()
+@bot.slash_command(name="owner", description="Get to know the owner.")
 async def owner(ctx):
-    await ctx.send(f"<@891615297071624212> is the owner of me!")
+    await ctx.respond(f"<@891615297071624212> is the owner of me!")
 
-@bot.command()
-async def say(ctx, *, message):
-    await ctx.message.delete()
-    message = message.replace("%%", "@everyone")
-    await ctx.send(message)
+@bot.tree.command(name="say", description="Make the bot say something")
+@app_commands.describe(message="The message you want the bot to say")
+async def say(interaction: discord.Interaction, message: str):
+    await interaction.response.send_message(message)
+
+@bot.slash_command(name="", description="")
+async def cmds(ctx):
+    title="Bot Commands",
+        description="""`!hello` -> Pings and greets the user that used the command.
+
+`!ping` -> Gives you the latency that the bot is running on.
+
+`!owner` -> Informs you of the owner.
+
+`!say [Message]` -> Allows you to make the bot say something.
+
+`!ad` -> Sends the USAF ad.
+
+`!rawad` -> Sends the direct copy-and-paste style version of the USAF ad.
+""",
+        color=discord.Color.yellow()
+    )
+    await ctx.send(embed=embed)
 
 @bot.command()
 async def cmds(ctx):
