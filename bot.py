@@ -207,43 +207,54 @@ async def dm(ctx, member: discord.Member, *, message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    await ctx.message.delete()
+    await ctx.message.delete()  # Delete the command message
+
     if hasattr(ctx.command, "on_error"):
         return
 
+    # Helper to send embed messages
+    async def send_error_embed(description):
+        embed = discord.Embed(
+            title="❌ Command Error",
+            description=description,
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed, delete_after=5)
+
     # Command not found
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send(f"❌ `{ctx.message.content}` is not a valid command.", delete_after=5)
+        await send_error_embed(f"`{ctx.message.content}` is not a valid command.")
         return
 
     # Missing required arguments
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"❌ Missing argument: `{error.param.name}` for command `{ctx.command}`.", delete_after=5)
+        await send_error_embed(f"Missing argument: `{error.param.name}` for command `{ctx.command}`.")
         return
 
     # Bad argument type
     if isinstance(error, commands.BadArgument):
-        await ctx.send(f"❌ Invalid argument for command `{ctx.command}`. {error}", delete_after=5)
+        await send_error_embed(f"Invalid argument for command `{ctx.command}`. {error}")
         return
 
     # Command on cooldown
     if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"⏳ Command `{ctx.command}` is on cooldown. Try again in {round(error.retry_after, 1)} seconds.", delete_after=5)
+        await send_error_embed(f"Command `{ctx.command}` is on cooldown. Try again in {round(error.retry_after, 1)} seconds.")
         return
 
     # Missing permissions
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send(f"🚫 You do not have permission to use `{ctx.command}`. Missing: {', '.join(error.missing_permissions)}", delete_after=5)
+        await send_error_embed(f"You do not have permission to use `{ctx.command}`. Missing: {', '.join(error.missing_permissions)}")
         return
 
     # Only bot owner can use
     if isinstance(error, commands.NotOwner):
-        await ctx.send(f"🚫 Only the bot owner can use `{ctx.command}`.", delete_after=5)
+        await send_error_embed(f"Only the bot owner can use `{ctx.command}`.")
         return
 
     # Other errors
     print(f"⚠️ Unexpected error in command `{ctx.command}`: {error}")
-    await ctx.send(f"❌ Something went wrong with `{ctx.command}`. Check the console for details.", delete_after=5)
+    await send_error_embed(f"Something went wrong with `{ctx.command}`. Check the console for details.")
+
 
 
 # Flask keep-alive
