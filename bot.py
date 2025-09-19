@@ -184,43 +184,43 @@ async def shutdown_error(ctx, error):
 
 @bot.event
 async def on_command_error(ctx, error):
-    # Ignore errors that have local handlers
     if hasattr(ctx.command, "on_error"):
         return
 
     # Command not found
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send(f"❌ `{ctx.message.content}` is not a valid command.")
+        await ctx.send(f"❌ `{ctx.message.content}` is not a valid command.", delete_after=5)
         return
 
     # Missing required arguments
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"❌ Missing argument: `{error.param.name}` for command `{ctx.command}`.")
+        await ctx.send(f"❌ Missing argument: `{error.param.name}` for command `{ctx.command}`.", delete_after=5)
         return
 
     # Bad argument type
     if isinstance(error, commands.BadArgument):
-        await ctx.send(f"❌ Invalid argument for command `{ctx.command}`. {error}")
+        await ctx.send(f"❌ Invalid argument for command `{ctx.command}`. {error}", delete_after=5)
         return
 
     # Command on cooldown
     if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"⏳ Command `{ctx.command}` is on cooldown. Try again in {round(error.retry_after, 1)} seconds.")
+        await ctx.send(f"⏳ Command `{ctx.command}` is on cooldown. Try again in {round(error.retry_after, 1)} seconds.", delete_after=5)
         return
 
     # Missing permissions
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send(f"🚫 You do not have permission to use `{ctx.command}`. Missing: {', '.join(error.missing_permissions)}")
+        await ctx.send(f"🚫 You do not have permission to use `{ctx.command}`. Missing: {', '.join(error.missing_permissions)}", delete_after=5)
         return
 
     # Only bot owner can use
     if isinstance(error, commands.NotOwner):
-        await ctx.send(f"🚫 Only the bot owner can use `{ctx.command}`.")
+        await ctx.send(f"🚫 Only the bot owner can use `{ctx.command}`.", delete_after=5)
         return
 
     # Other errors
     print(f"⚠️ Unexpected error in command `{ctx.command}`: {error}")
-    await ctx.send(f"❌ Something went wrong with `{ctx.command}`. Check the console for details.")
+    await ctx.send(f"❌ Something went wrong with `{ctx.command}`. Check the console for details.", delete_after=5)
+
 
 # Flask keep-alive
 app = Flask("")
