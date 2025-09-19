@@ -26,6 +26,9 @@ async def hello(ctx):
 async def hello(ctx):
     await ctx.respond(f"Hello {ctx.author.mention} 👋")
 
+@bot.slash_command(name="ping", description="Get the ping from the bot.")
+async def ping(ctx):
+    await ctx.respond(f"Pong! 🏓 \nLatency: {round(bot.latency * 1000)}ms")
 
 @bot.command()
 async def ping(ctx):
