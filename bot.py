@@ -71,9 +71,9 @@ async def info(ctx):
         description="`!hello`\n> Says hello to the user who initially ran the command.\n\n"
                     "`!ping`\n> Gives the latency of the bot.\n\n"
                     "`!owner`\n> Informs you of the bot owner.\n\n"
-                    "`!say [MSG]`\n> Makes the bot say something. Use %% to mention @everyone!"
-                    "`!ad`\n> Posts our ad for USAF."
-                    "`!rawad`\n> Posts our ad with a easy copy and paste meathod!"
+                    "`!say [MSG]`\n> Makes the bot say something. Use %% to mention @everyone!\n\n"
+                    "`!ad`\n> Posts our ad for USAF.\n\n"
+                    "`!rawad`\n> Posts our ad with a easy copy and paste meathod!\n\n"
                     "`!shutdown`\n> Allows the owner to shut the bot down.",
         color=discord.Color.yellow()
     )
