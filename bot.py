@@ -186,6 +186,25 @@ async def shutdown_error(ctx, error):
     # Kill the script completely
     sys.exit(0)
 
+@bot.command()
+async def say(ctx, member: discord.Member, *, message):
+    """
+    DMs a mentioned user and notifies the channel.
+    Usage: !say @user Your message here
+    """
+    await ctx.message.delete()  # Remove the command message
+
+    try:
+        # Send DM to the mentioned member
+        await member.send(message)
+        # Notify in the channel
+        await ctx.send(f"✅ DM sent to {member.mention}", delete_after=5)
+    except discord.Forbidden:
+        # Cannot DM the user (privacy settings)
+        await ctx.send(f"❌ Could not DM {member.mention}. They might have DMs disabled.", delete_after=5)
+
+
+
 @bot.event
 async def on_command_error(ctx, error):
     await ctx.message.delete()
