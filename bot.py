@@ -182,6 +182,18 @@ async def shutdown_error(ctx, error):
     # Kill the script completely
     sys.exit(0)
 
+@bot.event
+async def on_command_error(ctx, error):
+    # Ignore errors that already have local handlers
+    if hasattr(ctx.command, "on_error"):
+        return
+
+    # You can log the error if you want (for debugging)
+    print(f"⚠️ Error in command {ctx.command}: {error}")
+
+    # Send a generic failure message
+    await ctx.send("❌ The bot failed to do that.")
+
 # Flask keep-alive
 app = Flask("")
 
