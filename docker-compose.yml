@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  bot:
+    build: .
+    container_name: usafhelper_bot
+    restart: unless-stopped
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - RUN_FLASK=${RUN_FLASK:-false}
+    ports:
+      - "3000:3000" # optional Flask port
+    volumes:
+      - ./:/app

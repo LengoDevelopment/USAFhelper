@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Bot (integrated)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\venv\\Scripts\\python.exe ${workspaceFolder}\\bot.py",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

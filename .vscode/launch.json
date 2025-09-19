@@ -1,0 +1,15 @@
+{
+    // Use the Run and Debug feature in VS Code to launch the bot.
+    // It will read variables from your `.env` file automatically.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run bot.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/bot.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

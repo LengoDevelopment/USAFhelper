@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: usafhelper-bot
+    env: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    instanceSize: starter
+    envVars:
+      - key: RUN_FLASK
+        value: "false"
+        sync: true

@@ -1,0 +1,45 @@
+[2025-09-18 22:15:47] [INFO    ] discord.client: logging in using static token
+Traceback (most recent call last):
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\http.py", line 839, in static_login
+    data = await self.request(Route('GET', '/users/@me'))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\http.py", line 773, in request
+    raise HTTPException(response, data)
+discord.errors.HTTPException: 401 Unauthorized (error code: 0): 401: Unauthorized
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\bot.py", line 124, in <module>
+    client.run(TOKEN)
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\client.py", line 929, in run
+    asyncio.run(runner())
+  File "C:\Users\badki\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\badki\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\badki\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 684, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\client.py", line 918, in runner
+    await self.start(token, reconnect=reconnect)
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\client.py", line 846, in start
+    await self.login(token)
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\client.py", line 675, in login
+    data = await self.http.static_login(token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\venv\Lib\site-packages\discord\http.py", line 843, in static_login
+    raise LoginFailure('Improper token has been passed.') from exc
+discord.errors.LoginFailure: Improper token has been passed.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\badki\OneDrive\Documents\DiscordBot\bot.py", line 127, in <module>
+    print(f"\u274c Failed to start client: {type(e).__name__} - {e}")
+  File "C:\Users\badki\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 0: character maps to <undefined>

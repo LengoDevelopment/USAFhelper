@@ -1,312 +1,148 @@
 import discord
-from discord.ext import commands
-from flask import Flask, request
+from discord import app_commands
+from flask import Flask
 from threading import Thread
-import os, sys
+import os
+from dotenv import load_dotenv
 
-# Enable message content intent
+# Load environment variables from a local .env file (if present)
+load_dotenv()
+
+# ------------------------------
+# Bot Setup
+# ------------------------------
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # needed for message content in DMs if you use them
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+class MyClient(discord.Client):
+    def __init__(self):
+        super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
 
-@bot.event
+    async def setup_hook(self):
+        await self.tree.sync()
+        # Use ASCII-only startup messages to avoid Windows console encoding errors
+        print("Synced all slash commands.")
+
+client = MyClient()
+
+# ------------------------------
+# Slash Commands
+# ------------------------------
+
+@client.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user}")
-    await bot.change_presence(
-        activity=discord.Game(name="Helping USAF")
-    )
+    # ASCII-only message to avoid UnicodeEncodeError on Windows consoles
+    print(f"Logged in as {client.user}")
+    await client.change_presence(activity=discord.Game(name="Helping USAF"))
 
-@bot.command()
-async def hello(ctx):
-    await ctx.send(f"Hello {ctx.author.mention} 👋")
+# Hello
+@client.tree.command(name="hello", description="Say hello to the bot")
+async def hello(interaction: discord.Interaction):
+    await interaction.response.send_message(f"Hello {interaction.user.mention} 👋")
 
-# Slash command example
-@bot.slash_command(name="hello", description="Say hello to the bot")
-async def hello(ctx):
-    await ctx.respond(f"Hello {ctx.author.mention} 👋")
+# Ping
+@client.tree.command(name="ping", description="Get the bot's latency")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message(f"Pong! 🏓\nLatency: {round(client.latency*1000)}ms")
 
-@bot.slash_command(name="ping", description="Get the ping from the bot.")
-async def ping(ctx):
-    await ctx.respond(f"Pong! 🏓 \nLatency: {round(bot.latency * 1000)}ms")
+# Owner
+@client.tree.command(name="owner", description="Get the bot owner")
+async def owner(interaction: discord.Interaction):
+    await interaction.response.send_message("<@891615297071624212> is the owner of this bot!")
 
-@bot.command()
-async def ping(ctx):
-    await ctx.message.delete()
-    await ctx.send(f"Pong! 🏓 \nLatency: {round(bot.latency * 1000)}ms")
+# Announce
+@client.tree.command(name="announce", description="Send an announcement")
+@app_commands.describe(title="The announcement title", content="The announcement content")
+async def announce(interaction: discord.Interaction, title: str, content: str):
+    embed = discord.Embed(title=title, description=content, color=discord.Color.green())
+    await interaction.response.send_message(embed=embed)
 
-@bot.slash_command(name="owner", description="Get to know the owner.")
-async def owner(ctx):
-    await ctx.respond(f"<@891615297071624212> is the owner of me!")
+# Info
+@client.tree.command(name="info", description="Get info about the server or bot")
+async def info(interaction: discord.Interaction):
+    guild = interaction.guild
+    embed = discord.Embed(title="Server Info", color=discord.Color.purple())
+    embed.add_field(name="Server Name", value=guild.name, inline=False)
+    embed.add_field(name="Server ID", value=guild.id, inline=False)
+    embed.add_field(name="Member Count", value=guild.member_count, inline=False)
+    embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+    await interaction.response.send_message(embed=embed)
 
-@bot.tree.command(name="say", description="Make the bot say something")
-@app_commands.describe(message="The message you want the bot to say")
-async def say(interaction: discord.Interaction, message: str):
-    await interaction.response.send_message(message)
+@client.tree.command(name="ready", description="Tell a user they have to respond to a ticket within 24 hours.")
+async def ready(interaction: discord.Interaction):
+    embed = discord.Embed(title="Ticket Update", description="You have 24 hours to respond to this ticket before it is closed.", color=discord.Color.orange())
+    embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+    await interaction.response.send_message(embed=embed)
 
-@bot.slash_command(name="cmds", description="")
-async def cmds(ctx):
-    title="Bot Commands",
-        description="""`!hello` -> Pings and greets the user that used the command.
+# Commands list (embed)
+@client.tree.command(name="commands", description="List all available commands and usage")
+async def commands(interaction: discord.Interaction):
+    embed = discord.Embed(title="Command List", color=discord.Color.blue())
+    embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
 
-`!ping` -> Gives you the latency that the bot is running on.
+    # Add commands as inline fields for a compact layout
+    embed.add_field(name="/hello", value="Say hello to the bot", inline=True)
+    embed.add_field(name="/ping", value="Get the bot's latency", inline=True)
+    embed.add_field(name="/owner", value="Get the bot owner", inline=True)
+    embed.add_field(name="/announce", value="<title> <content> — Send an announcement embed", inline=True)
+    embed.add_field(name="/info", value="Get server info (name, id, member count)", inline=True)
+    embed.add_field(name="/ready", value="Ticket update: 24 hours to respond", inline=True)
+    embed.add_field(name="/dm", value="<user> <content> — Send a DM to a user", inline=True)
+    embed.add_field(name="/shutdown", value="Shut down the bot (owner only)", inline=True)
 
-`!owner` -> Informs you of the owner.
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
-`!say [Message]` -> Allows you to make the bot say something.
-
-`!ad` -> Sends the USAF ad.
-
-`!rawad` -> Sends the direct copy-and-paste style version of the USAF ad.
-""",
-        color=discord.Color.yellow()
-    )
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def cmds(ctx):
-    await ctx.message.delete()
-
-    embed = discord.Embed(
-        title="Bot Commands",
-        description="""`!hello` -> Pings and greets the user that used the command.
-
-`!ping` -> Gives you the latency that the bot is running on.
-
-`!owner` -> Informs you of the owner.
-
-`!say [Message]` -> Allows you to make the bot say something.
-
-`!ad` -> Sends the USAF ad.
-
-`!rawad` -> Sends the direct copy-and-paste style version of the USAF ad.
-""",
-        color=discord.Color.blue()
-    )
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def cinfo(ctx):
-    await ctx.message.delete()
-    await ctx.send(f"Channel: <#{ctx.channel.id}>\nServer: {ctx.guild.name}\nUsage: <@{ctx.author.id}>")
-
-@bot.command()
-async def info(ctx):
-    await ctx.message.delete()
-    embed = discord.Embed(
-        title="Bot Commands",
-        description="`!hello`\n> Says hello to the user who initially ran the command.\n\n"
-                    "`!ping`\n> Gives the latency of the bot.\n\n"
-                    "`!owner`\n> Informs you of the bot owner.\n\n"
-                    "`!say [MSG]`\n> Makes the bot say something. Use %% to mention @everyone!\n\n"
-                    "`!ad`\n> Posts our ad for USAF.\n\n"
-                    "`!rawad`\n> Posts our ad with a easy copy and paste meathod!\n\n"
-                    "`!shutdown`\n> Allows the owner to shut the bot down.",
-        color=discord.Color.yellow()
-    )
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def ready(ctx, member: discord.Member):
-    await ctx.message.delete()
-    await ctx.send(f"{member.mention}, please read the ticket closure information below:")
-
-    embed = discord.Embed(
-        title="Ticket Closure",
-        description="Greetings, we are going to close this ticket in `24 hours`. "
-                    "Please, ensure that you inform us if we can help you with anything else, "
-                    "failure to do so will result in the ticket being closed.\n\n"
-                    "*Thank you,*\nUSAF Support",
-        color=discord.Color.yellow()
-    )
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def ad(ctx):
-    await ctx.message.delete()
-    await ctx.send(f"""# 📢 ATTENTION RECRUITS & LEADERS 📢
-
-🇺🇸 The United States Armed Forces is gearing up for our next big chapter — our Roblox military game is in development and YOU can be part of it!
-
-💥 We’re recruiting for ALL positions! 💥
-
-🛡 Moderators – Keep the community safe & strong
-🏛 Presidential Cabinet Members – Lead our nation to glory
-🎖 Officers & Enlisted Members – Join divisions, train, and rise through the ranks
-
-🎯 Why join now?
-
-* | Be a founding member before the game launches!
-
-* | Help shape the future of our divisions & government
-
-* | Early members get priority roles & special recognition
-
-⚠ NOTE: Everything is subject to change as we grow — this is your chance to be here from day one!
-
-📅 Enlist today, serve tomorrow, lead forever.
-🔗https://discord.gg/JRKhxy8fQ9""")
-
-@bot.command()
-async def rawad(ctx):
-    await ctx.message.delete()
-    await ctx.send(f"""```# 📢 ATTENTION RECRUITS & LEADERS 📢
-
-🇺🇸 The United States Armed Forces is gearing up for our next big chapter — our Roblox military game is in development and YOU can be part of it!
-
-💥 We’re recruiting for ALL positions! 💥
-
-🛡 Moderators – Keep the community safe & strong
-🏛 Presidential Cabinet Members – Lead our nation to glory
-🎖 Officers & Enlisted Members – Join divisions, train, and rise through the ranks
-
-🎯 Why join now?
-
-* | Be a founding member before the game launches!
-
-* | Help shape the future of our divisions & government
-
-* | Early members get priority roles & special recognition
-
-⚠ NOTE: Everything is subject to change as we grow — this is your chance to be here from day one!
-
-📅 Enlist today, serve tomorrow, lead forever.
-🔗https://discord.gg/JRKhxy8fQ9```""")
-
-@bot.command()
-@commands.is_owner()
-async def emma(ctx):
-    await ctx.message.delete()
-    await ctx.send(f"Reasons why <@891615297071624212> loves Emma:")
-
-    embed = discord.Embed(
-        title="Emma's Love List",
-        description="> 1. Smile\n> 2. Eyes\n> 3. Laugh\n> 4. Empathy\n> 5. Generosity\n"
-                    "> 6. Jokes\n> 7. Sarcasm\n> 8. Communication\n> 9. Giving\n"
-                    "> 10. Forgiveness\n> 11. Clingy\n> 12. Love Language = Physical Touch\n> 13. Overall Personality",
-        color=discord.Color.pink()
-    )
-    await ctx.send(embed=embed)
-
-# ------------------------------
-# Clean Shutdown
-# ------------------------------
-@bot.command()
-@commands.is_owner()
-async def shutdown(ctx):
-    await ctx.send("👋 Shutting down...")
-
-    # Shut down Discord bot
-    await bot.close()
-
-@shutdown.error
-async def shutdown_error(ctx, error):
-    print("Imporper Permissions Raised")
-    if isinstance(error, commands.NotOwner):
-        await ctx.send("> 🚫 You don’t have permission to use this command.")
-
-    # Shut down Flask server if running
-    func = request.environ.get("werkzeug.server.shutdown")
-    if func:
-        func()
-
-    # Kill the script completely
-    sys.exit(0)
-
-@bot.command()
-async def dm(ctx, member: discord.Member, *, message):
-    """
-    DMs a mentioned user and notifies the channel.
-    Usage: !say @user Your message here
-    """
-    await ctx.message.delete()  # Remove the command message
-
+# DM Command
+@client.tree.command(name="dm", description="Send a direct message to a user")
+@app_commands.describe(user="User to DM", content="Message content")
+async def dm(interaction: discord.Interaction, user: discord.User, content: str):
     try:
-        # Send DM to the mentioned member
-        await member.send(message)
-        # Notify in the channel
-        await ctx.send(f"✅ DM sent to {member.mention}", delete_after=5)
-    except discord.Forbidden:
-        # Cannot DM the user (privacy settings)
-        await ctx.send(f"❌ Could not DM {member.mention}. They might have DMs disabled.", delete_after=5)
+        await user.send(content)
+        await interaction.response.send_message(f"✅ DM sent to {user.mention}", ephemeral=True)
+    except:
+        await interaction.response.send_message(f"❌ Could not send DM to {user.mention}", ephemeral=True)
 
-
-
-@bot.event
-async def on_command_error(ctx, error):
-    await ctx.message.delete()  # Delete the command message
-
-    if hasattr(ctx.command, "on_error"):
+# Shutdown (Owner only)
+@client.tree.command(name="shutdown", description="Shut down the bot (owner only)")
+async def shutdown(interaction: discord.Interaction):
+    if interaction.user.id != 891615297071624212:  # replace with your Discord ID
+        await interaction.response.send_message("❌ You are not allowed to use this command.", ephemeral=True)
         return
+    await interaction.response.send_message("Shutting down...")
+    await client.close()
 
-    # Helper to send embed messages
-    async def send_error_embed(description):
-        embed = discord.Embed(
-            title="❌ Command Error",
-            description=description,
-            color=discord.Color.red()
-        )
-        await ctx.send(embed=embed, delete_after=5)
-
-    # Command not found
-    if isinstance(error, commands.CommandNotFound):
-        await send_error_embed(f"`{ctx.message.content}` is not a valid command.")
-        return
-
-    # Missing required arguments
-    if isinstance(error, commands.MissingRequiredArgument):
-        await send_error_embed(f"Missing argument: `{error.param.name}` for command `{ctx.command}`.")
-        return
-
-    # Bad argument type
-    if isinstance(error, commands.BadArgument):
-        await send_error_embed(f"Invalid argument for command `{ctx.command}`. {error}")
-        return
-
-    # Command on cooldown
-    if isinstance(error, commands.CommandOnCooldown):
-        await send_error_embed(f"Command `{ctx.command}` is on cooldown. Try again in {round(error.retry_after, 1)} seconds.")
-        return
-
-    # Missing permissions
-    if isinstance(error, commands.MissingPermissions):
-        await send_error_embed(f"You do not have permission to use `{ctx.command}`. Missing: {', '.join(error.missing_permissions)}")
-        return
-
-    # Only bot owner can use
-    if isinstance(error, commands.NotOwner):
-        await send_error_embed(f"Only the bot owner can use `{ctx.command}`.")
-        return
-
-    # Other errors
-    print(f"⚠️ Unexpected error in command `{ctx.command}`: {error}")
-    await send_error_embed(f"Something went wrong with `{ctx.command}`. Check the console for details.")
-
-
-
-# Flask keep-alive
+# ------------------------------
+# Flask keep-alive (optional)
+# ------------------------------
 app = Flask("")
 
 @app.route("/")
 def home():
     return "Bot is alive!"
 
-def run():
+def run_flask():
     app.run(host="0.0.0.0", port=3000)
 
-# ------------------------------
-# Optional Flask toggle
-# ------------------------------
 if os.getenv("RUN_FLASK", "false").lower() == "true":
-    t = Thread(target=run)
+    t = Thread(target=run_flask)
     t.start()
 
 # ------------------------------
-# Run the bot safely with environment variable
+# Run Bot
 # ------------------------------
 TOKEN = os.getenv("DISCORD_TOKEN")
-
 if not TOKEN:
     print("❌ No Discord token found! Make sure DISCORD_TOKEN is set.")
 else:
-    bot.run(TOKEN)
+    # Safe diagnostic (do not print the token itself)
+    try:
+        # Safe diagnostic: do not print the token itself (only its length)
+        print(f"Discord token loaded (length {len(TOKEN)}). Starting client...")
+    except Exception:
+        print("Discord token loaded. Starting client...")
+    try:
+        client.run(TOKEN)
+    except Exception as e:
+        # Print exception type and message but never the token
+        print(f"❌ Failed to start client: {type(e).__name__} - {e}")
