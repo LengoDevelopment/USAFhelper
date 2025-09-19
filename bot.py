@@ -188,7 +188,11 @@ async def on_command_error(ctx, error):
     if hasattr(ctx.command, "on_error"):
         return
 
-    # You can log the error if you want (for debugging)
+    # Ignore "command not found" errors
+    if isinstance(error, commands.CommandNotFound):
+        return
+
+    # Log the error for debugging
     print(f"⚠️ Error in command {ctx.command}: {error}")
 
     # Send a generic failure message
