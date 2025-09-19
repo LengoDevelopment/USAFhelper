@@ -170,8 +170,9 @@ async def shutdown(ctx):
 
 @shutdown.error
 async def shutdown_error(ctx, error):
+    print("Imporper Permissions Raised")
     if isinstance(error, commands.NotOwner):
-        await ctx.send("🚫 You don’t have permission to use this command.")
+        await ctx.send("> 🚫 You don’t have permission to use this command.")
 
     # Shut down Flask server if running
     func = request.environ.get("werkzeug.server.shutdown")
